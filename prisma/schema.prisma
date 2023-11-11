@@ -1,0 +1,176 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Doctor {
+  id             Int            @id @default(autoincrement())
+  firstName      String
+  lastName       String
+  username       String?        @unique
+  hashedPassword String
+  gender         Gender
+  specialization Specialization @default(UNKNOWN)
+  phoneNumber    String?        @unique
+  email          String         @unique
+  patients       Patient[]      @relation("DoctorPatients")
+  appointments   Appointment[]  @relation("DoctorAppointments")
+  staffMembers   Staff[]        @relation("DoctorStaff")
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+}
+
+model Staff {
+  id             Int      @id @default(autoincrement())
+  doctorId       Int
+  firstName      String
+  lastName       String
+  username       String   @unique
+  hashedPassword String
+  gender         Gender
+  role           Role
+  phoneNumber    String?  @unique
+  email          String?  @unique
+  doctor         Doctor   @relation("DoctorStaff", fields: [doctorId], references: [id])
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model Patient {
+  id             Int            @id @default(autoincrement())
+  fullName       String
+  gender         Gender
+  doctorId       Int
+  dateOfBirth    DateTime?
+  email          String?        @unique
+  phoneNumber    String?        @unique
+  address        String?
+  city           String?
+  state          String?
+  zipCode        String?
+  country        String?
+  bloodType      BloodType
+  allergies      String[]
+  appointments   Appointment[]  @relation("PatientAppointments")
+  consultations  Consultation[]
+  medications    Medication[]
+  labTests       LabTest[]
+  medicalHistory String?
+  doctor         Doctor         @relation("DoctorPatients", fields: [doctorId], references: [id])
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+}
+
+model Appointment {
+  id              Int               @id @default(autoincrement())
+  patientId       Int
+  doctorId        Int
+  appointmentDate DateTime?
+  status          AppointmentStatus
+  reason          String?
+  patient         Patient           @relation("PatientAppointments", fields: [patientId], references: [id])
+  doctor          Doctor            @relation("DoctorAppointments", fields: [doctorId], references: [id])
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+}
+
+model Consultation {
+  id        Int      @id @default(autoincrement())
+  patientId Int
+  date      DateTime
+  notes     String
+  patient   Patient  @relation(fields: [patientId], references: [id])
+}
+
+model Medication {
+  id        Int     @id @default(autoincrement())
+  name      String
+  dosage    String
+  patientId Int
+  patient   Patient @relation(fields: [patientId], references: [id])
+}
+
+model LabTest {
+  id          Int      @id @default(autoincrement())
+  patientId   Int
+  testName    String
+  dateOrdered DateTime
+  result      String?
+  patient     Patient  @relation(fields: [patientId], references: [id])
+}
+
+enum Gender {
+  MALE
+  FEMALE
+}
+
+enum BloodType {
+  UNKOWN
+  A_POSITIVE
+  A_NEGATIVE
+  B_POSITIVE
+  B_NEGATIVE
+  AB_POSITIVE
+  AB_NEGATIVE
+  O_POSITIVE
+  O_NEGATIVE
+}
+
+enum Role {
+  UNKOWN
+  NURSE
+  RECEPTIONIST
+  PHARMACIST
+  LAB_TECHNICIAN
+  RADIOLOGIST
+  ANESTHESIOLOGIST
+  PHYSIOTHERAPIST
+  DIETITIAN
+  ADMINISTRATOR
+  CLEANER
+  SECURITY_GUARD
+  IT_SUPPORT
+  OTHER
+}
+
+enum AppointmentStatus {
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  CANCELED
+}
+
+enum Specialization {
+  UNKNOWN
+  CARDIOLOGIST
+  DERMATOLOGIST
+  GASTROENTEROLOGIST
+  NEUROLOGIST
+  ONCOLOGIST
+  OPHTHALMOLOGIST
+  ORTHOPEDIC_SURGEON
+  PEDIATRICIAN
+  PSYCHIATRIST
+  RADIOLOGIST
+  UROLOGIST
+  OBSTETRICIAN_GYNECOLOGIST
+  PULMONOLOGIST
+  ENDOCRINOLOGIST
+  HEMATOLOGIST
+  INFECTIOUS_DISEASE_SPECIALIST
+  RHEUMATOLOGIST
+  OTOLARYNGOLOGIST
+  NUTRITIONIST
+  ALLERGIST
+  PATHOLOGIST
+  ANESTHESIOLOGIST
+  PHYSIATRIST
+  DENTIST
+  OPTOMETRIST
+  VETERINARIAN
+  OTHER
+}
